@@ -1,0 +1,652 @@
+generator client {
+  provider   = "prisma-client-js"
+  engineType = "library"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+model Account {
+  id                String  @id @default(cuid())
+  userId            String
+  type              String
+  provider          String
+  providerAccountId String
+  refresh_token     String?
+  access_token      String?
+  expires_at        Int?
+  token_type        String?
+  scope             String?
+  id_token          String?
+  session_state     String?
+  user              User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([provider, providerAccountId])
+}
+
+model Session {
+  id           String   @id @default(cuid())
+  sessionToken String   @unique
+  userId       String
+  expires      DateTime
+  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model User {
+  id                   String                @id @default(cuid())
+  name                 String?
+  username             String?               @unique
+  email                String?               @unique
+  phone                String?
+  emailVerified        DateTime?
+  image                String?
+  password             String?
+  role                 Role                  @default(USER)
+  balance              Float                 @default(0)
+  spent                Float                 @default(0)
+  apiKey               String                @unique @default(uuid())
+  parentId             String?
+  banned               Boolean               @default(false)
+  bannedAt             DateTime?
+  banReason            String?
+  lastIp               String?
+  createdAt            DateTime              @default(now())
+  updatedAt            DateTime              @updatedAt
+  accounts             Account[]
+  favoriteServices     FavoriteService[]
+  notifications        Notification[]
+  orders               Order[]
+  payments             Payment[]
+  refillRequests       RefillRequest[]
+  resellerApplications ResellerApplication[]
+  scheduledOrders      ScheduledOrder[]
+  reviews              ServiceReview[]
+  sessions             Session[]
+  tickets              Ticket[]
+  parent               User?                 @relation("ResellerCustomers", fields: [parentId], references: [id])
+  customers            User[]                @relation("ResellerCustomers")
+  aiChatSessions       AIChatSession[]
+  xp                   Int                   @default(0)
+  level                Int                   @default(1)
+  questCoins           Float                 @default(0)
+  lastLoginDate        DateTime?
+  quests               UserQuest[]
+  abandonedProcesses   AbandonedProcess[]
+  referralCode         String?               @unique
+  referredById         String?
+  referredClicks       Int                   @default(0)
+  referralBalance      Float                 @default(0.0)
+  referredBy           User?                 @relation("ReferralHistory", fields: [referredById], references: [id])
+  referredUsers        User[]                @relation("ReferralHistory")
+  referralTrans        ReferralTransaction[] @relation("ReferrerTrans")
+}
+
+model VerificationToken {
+  identifier String
+  token      String   @unique
+  expires    DateTime
+
+  @@unique([identifier, token])
+}
+
+model BannedIp {
+  id        String   @id @default(cuid())
+  ip        String   @unique
+  reason    String?
+  createdAt DateTime @default(now())
+
+  @@index([ip])
+}
+
+model Category {
+  id           String     @id @default(cuid())
+  name         String
+  slug         String?    @unique
+  description  String?
+  icon         String?
+  sortOrder    Int        @default(0)
+  status       Boolean    @default(true)
+  translations Json?
+  parentId     String?
+  createdAt    DateTime   @default(now())
+  updatedAt    DateTime   @updatedAt
+  providerId   String?
+  parent       Category?  @relation("CategoryTree", fields: [parentId], references: [id])
+  children     Category[] @relation("CategoryTree")
+  provider     Provider?  @relation("ProviderCategories", fields: [providerId], references: [id])
+  packages     Package[]
+  services     Service[]
+
+  @@index([parentId])
+  @@index([providerId])
+  @@index([status, sortOrder])
+}
+
+model Provider {
+  id                    String     @id @default(cuid())
+  name                  String
+  apiUrl                String
+  apiKey                String
+  balance               Float      @default(0)
+  status                Boolean    @default(true)
+  baseCurrency          String     @default("USD")
+  createdAt             DateTime   @default(now())
+  updatedAt             DateTime   @updatedAt
+  retailMarkupPercent   Float      @default(200)
+  resellerMarkupPercent Float      @default(100)
+  categoryNamePrefix    String     @default("")
+  serviceNamePrefix     String     @default("")
+  categories            Category[] @relation("ProviderCategories")
+  services              Service[]
+}
+
+model Service {
+  id                   String            @id @default(cuid())
+  name                 String
+  slug                 String?
+  description          String?
+  price                Float             @default(0)
+  retailPrice          Float?
+  resellerPrice        Float?
+  min                  Int               @default(10)
+  max                  Int               @default(100000)
+  status               Boolean           @default(true)
+  canRefill            Boolean           @default(false)
+  canCancel            Boolean           @default(false)
+  hasDripfeed          Boolean           @default(false)
+  translations         Json?
+  categoryId           String
+  providerId           String?
+  externalId           String?
+  createdAt            DateTime          @default(now())
+  updatedAt            DateTime          @updatedAt
+  avgCompletionMinutes Float?
+  completedOrderCount  Int               @default(0)
+  serviceType          String?           @default("Default")
+  ratingAvg            Float?
+  ratingCount          Int               @default(0)
+  linkFormat           String?           @default("URL")
+  favoriteServices     FavoriteService[]
+  orders               Order[]
+  packages             Package[]
+  scheduledOrders      ScheduledOrder[]
+  category             Category          @relation(fields: [categoryId], references: [id])
+  provider             Provider?         @relation(fields: [providerId], references: [id])
+  reviews              ServiceReview[]
+
+  @@index([categoryId])
+  @@index([providerId])
+  @@index([status])
+}
+
+/// *
+///  * Servis kullanıcı yorumları + puanlamaları.
+///  * AggregateRating schema.org için kaynak; her satırda kullanıcı ya da
+///  * konuk (guestEmail+guestName) yorumu olabilir. `approved=true` olanlar
+///  * herkese açık görünür.
+model ServiceReview {
+  id        String   @id @default(cuid())
+  serviceId String
+  userId    String?
+  guestName String?
+  rating    Int
+  title     String?
+  comment   String?
+  approved  Boolean  @default(true)
+  flagged   Boolean  @default(false)
+  ipHash    String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  service   Service  @relation(fields: [serviceId], references: [id], onDelete: Cascade)
+  user      User?    @relation(fields: [userId], references: [id])
+
+  @@index([serviceId, approved, createdAt])
+  @@index([userId])
+}
+
+model FavoriteService {
+  id         String   @id @default(cuid())
+  userId     String?
+  guestToken String?
+  serviceId  String
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+  service    Service  @relation(fields: [serviceId], references: [id], onDelete: Cascade)
+  user       User?    @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, serviceId])
+  @@unique([guestToken, serviceId])
+  @@index([userId, createdAt])
+  @@index([guestToken, createdAt])
+  @@index([serviceId, createdAt])
+}
+
+model Order {
+  id                     String          @id @default(cuid())
+  userId                 String
+  serviceId              String
+  link                   String
+  quantity               Int
+  charge                 Float
+  startCount             Int             @default(0)
+  remains                Int             @default(0)
+  status                 OrderStatus     @default(PENDING)
+  apiOrderId             String?
+  error                  String?
+  cancelledAt            DateTime?
+  refundedAmount         Float?
+  createdAt              DateTime        @default(now())
+  updatedAt              DateTime        @updatedAt
+  providerLastCheckedAt  DateTime?
+  providerRawStatus      String?
+  providerSentAt         DateTime?
+  providerStatus         String?
+  providerSyncError      String?
+  lastRefillAt           DateTime?
+  stuckAt                DateTime?
+  stuckReason            String?
+  awaitingManualComments Boolean         @default(false)
+  customComments         String?
+  placedByAgent          Boolean         @default(false)
+  service                Service         @relation(fields: [serviceId], references: [id])
+  user                   User            @relation(fields: [userId], references: [id])
+  refillRequests         RefillRequest[]
+  tickets                Ticket[]
+
+  @@index([userId, createdAt])
+  @@index([serviceId])
+  @@index([status])
+  @@index([apiOrderId])
+  @@index([stuckAt])
+}
+
+model Payment {
+  id            String        @id @default(cuid())
+  userId        String
+  amount        Float
+  method        String
+  status        PaymentStatus @default(PENDING)
+  externalId    String?
+  createdAt     DateTime      @default(now())
+  updatedAt     DateTime      @updatedAt
+  failureCode   String?
+  failureReason String?
+  gatewayStatus String?
+  user          User          @relation(fields: [userId], references: [id])
+
+  @@index([userId, createdAt])
+}
+
+model Ticket {
+  id        String    @id @default(cuid())
+  userId    String
+  subject   String
+  status    String    @default("OPEN")
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+  orderId   String?
+  messages  Message[]
+  order     Order?    @relation(fields: [orderId], references: [id])
+  user      User      @relation(fields: [userId], references: [id])
+
+  @@index([userId, createdAt])
+  @@index([status])
+}
+
+model Message {
+  id        String   @id @default(cuid())
+  ticketId  String
+  message   String
+  isAdmin   Boolean  @default(false)
+  isAi      Boolean  @default(false)
+  createdAt DateTime @default(now())
+  ticket    Ticket   @relation(fields: [ticketId], references: [id])
+
+  @@index([ticketId, createdAt])
+}
+
+model Setting {
+  key   String @id
+  value String
+}
+
+model AiProvider {
+  id        String   @id @default(cuid())
+  name      String
+  slug      String   @unique
+  model     String
+  apiKeys   Json     @default("[]")
+  enabled   Boolean  @default(false)
+  isDefault Boolean  @default(false)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model Package {
+  id             String   @id @default(cuid())
+  name           String
+  description    String?
+  quantity       Int
+  price          Float
+  retailPrice    Float?
+  resellerPrice  Float?
+  showOnHomepage Boolean  @default(false)
+  sortOrder      Int      @default(0)
+  status         Boolean  @default(true)
+  translations   Json?
+  targetCountry  String?
+  categoryId     String
+  serviceId      String
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+  comboItems     Json?
+  category       Category @relation(fields: [categoryId], references: [id])
+  service        Service  @relation(fields: [serviceId], references: [id])
+
+  @@index([categoryId])
+  @@index([serviceId])
+  @@index([status, sortOrder])
+}
+
+model BlogPost {
+  id           String    @id @default(cuid())
+  title        String
+  slug         String    @unique
+  excerpt      String?
+  content      String
+  coverImage   String?
+  published    Boolean   @default(false)
+  featured     Boolean   @default(false)
+  publishedAt  DateTime?
+  createdAt    DateTime  @default(now())
+  updatedAt    DateTime  @updatedAt
+  langStatus   Json?
+  translations Json?
+
+  @@index([published, publishedAt])
+  @@index([featured])
+}
+
+model BlogTopic {
+  id        String    @id @default(cuid())
+  title     String
+  used      Boolean   @default(false)
+  usedAt    DateTime?
+  createdAt DateTime  @default(now())
+
+  @@index([used])
+}
+
+model JobRun {
+  id            String    @id @default(cuid())
+  jobName       String
+  status        String
+  trigger       String
+  scanned       Int       @default(0)
+  synced        Int       @default(0)
+  sent          Int       @default(0)
+  failures      Int       @default(0)
+  refundedTotal Float     @default(0)
+  details       String?
+  startedAt     DateTime  @default(now())
+  finishedAt    DateTime?
+
+  @@index([jobName, startedAt])
+}
+
+model Notification {
+  id        String   @id @default(cuid())
+  userId    String
+  type      String
+  title     String
+  message   String
+  read      Boolean  @default(false)
+  link      String?
+  createdAt DateTime @default(now())
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId, read])
+  @@index([userId, createdAt])
+}
+
+model RefillRequest {
+  id               String              @id @default(cuid())
+  orderId          String
+  userId           String
+  status           RefillRequestStatus @default(PENDING)
+  providerRefillId String?
+  adminNote        String?
+  requestedAt      DateTime            @default(now())
+  resolvedAt       DateTime?
+  order            Order               @relation(fields: [orderId], references: [id])
+  user             User                @relation(fields: [userId], references: [id])
+
+  @@index([orderId])
+  @@index([userId])
+  @@index([status])
+  @@index([requestedAt])
+}
+
+model ScheduledOrder {
+  id                   String               @id @default(cuid())
+  userId               String
+  serviceId            String
+  link                 String
+  quantity             Int
+  charge               Float
+  scheduledAt          DateTime
+  status               ScheduledOrderStatus @default(PENDING)
+  isRecurring          Boolean              @default(false)
+  recurrenceEveryHours Int?
+  recurrenceTimes      Int?
+  recurrenceEndAt      DateTime?
+  executedCount        Int                  @default(0)
+  nextRunAt            DateTime?
+  lastRunAt            DateTime?
+  executedOrderIds     String[]             @default([])
+  note                 String?
+  createdAt            DateTime             @default(now())
+  updatedAt            DateTime             @updatedAt
+  service              Service              @relation(fields: [serviceId], references: [id])
+  user                 User                 @relation(fields: [userId], references: [id])
+
+  @@index([userId])
+  @@index([scheduledAt])
+  @@index([nextRunAt])
+  @@index([status])
+}
+
+model ServiceUpdate {
+  id          String   @id @default(cuid())
+  serviceId   String?
+  serviceName String
+  category    String?
+  changeType  String
+  description String
+  createdAt   DateTime @default(now())
+
+  @@index([createdAt])
+}
+
+model ResellerApplication {
+  id        String   @id @default(cuid())
+  userId    String
+  status    String   @default("PENDING")
+  company   String?
+  website   String?
+  message   String?
+  adminNote String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([status])
+}
+
+model Announcement {
+  id        String   @id @default(cuid())
+  title     String
+  content   String
+  active    Boolean  @default(true)
+  pinned    Boolean  @default(false)
+  sortOrder Int      @default(0)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([active, pinned, sortOrder])
+  @@index([createdAt])
+}
+
+model PageView {
+  id        String   @id @default(cuid())
+  path      String   @db.VarChar(500)
+  referrer  String?  @db.VarChar(500)
+  sessionId String   @db.VarChar(64)
+  createdAt DateTime @default(now())
+
+  @@index([createdAt])
+  @@index([path])
+  @@index([sessionId])
+}
+
+model ActiveSession {
+  sessionId String   @id @db.VarChar(64)
+  path      String   @db.VarChar(500)
+  lastSeen  DateTime @default(now())
+
+  @@index([lastSeen])
+}
+
+model UserEvent {
+  id          String   @id @default(cuid())
+  type        String
+  userId      String?
+  sessionId   String?  @db.VarChar(64)
+  referrer    String?  @db.VarChar(500)
+  landingPage String?  @db.VarChar(500)
+  meta        Json?
+  createdAt   DateTime @default(now())
+
+  @@index([type, createdAt])
+  @@index([userId])
+  @@index([sessionId])
+}
+
+enum Role {
+  ADMIN
+  USER
+  RESELLER
+}
+
+enum OrderStatus {
+  PENDING
+  PROCESSING
+  COMPLETED
+  PARTIAL
+  CANCELED
+  REFUNDED
+}
+
+enum RefillRequestStatus {
+  PENDING
+  SENT
+  COMPLETED
+  REJECTED
+  FAILED
+}
+
+enum ScheduledOrderStatus {
+  PENDING
+  PROCESSING
+  COMPLETED
+  PARTIAL
+  CANCELED
+  FAILED
+}
+
+enum PaymentStatus {
+  PENDING
+  COMPLETED
+  FAILED
+}
+
+model AIChatSession {
+  id        String          @id @default(cuid())
+  userId    String?         
+  visitorId String          
+  createdAt DateTime        @default(now())
+  updatedAt DateTime        @updatedAt
+  messages  AIChatMessage[]
+  user      User?           @relation(fields: [userId], references: [id])
+
+  @@index([visitorId])
+}
+
+model AIChatMessage {
+  id          String        @id @default(cuid())
+  sessionId   String
+  role        String        
+  content     String        @db.Text
+  createdAt   DateTime      @default(now())
+  chatSession AIChatSession @relation(fields: [sessionId], references: [id], onDelete: Cascade)
+}
+
+model LandingPage {
+  id              String   @id @default(cuid())
+  slug            String   @unique
+  platform        String?  // e.g. "instagram", "tiktok"
+  seoTitle        String?
+  seoDescription  String?
+  h1              String?
+  heroDescription String?  @db.Text
+  content         String?  @db.Text // Zengin makale içeriği (HTML/Markdown)
+  faqItems        Json?    // Sık Sorulan Sorular [{q, a}]
+  translations    Json?    // Çoklu dil verileri (title, desc, content vb.)
+  published       Boolean  @default(true)
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  @@index([platform])
+}
+
+model UserQuest {
+  id          String    @id @default(cuid())
+  userId      String
+  title       String
+  description String?
+  rewardXp    Int
+  rewardCoin  Float
+  completed   Boolean   @default(false)
+  createdAt   DateTime  @default(now())
+  completedAt DateTime?
+  user        User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+}
+
+model AbandonedProcess {
+  id          String   @id @default(cuid())
+  userId      String
+  pageType    String   // "ORDER" | "FUNDS"
+  formData    Json     // Yarım bırakılan form verileri
+  recovered   Boolean  @default(false)
+  couponCode  String?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+}
+
+model ReferralTransaction {
+  id          String   @id @default(cuid())
+  referrerId  String
+  referredId  String
+  amount      Float
+  description String
+  createdAt   DateTime @default(now())
+  referrer    User     @relation("ReferrerTrans", fields: [referrerId], references: [id], onDelete: Cascade)
+
+  @@index([referrerId])
+}

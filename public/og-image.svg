@@ -1,0 +1,28 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="630" viewBox="0 0 1200 630">
+  <defs>
+    <linearGradient id="bg" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#0f172a" />
+      <stop offset="100%" stop-color="#1e293b" />
+    </linearGradient>
+    <linearGradient id="grad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#2563eb" />
+      <stop offset="100%" stop-color="#06b6d4" />
+    </linearGradient>
+    <filter id="shadow" x="-50%" y="-50%" width="200%" height="200%">
+      <feDropShadow dx="0" dy="25" stdDeviation="30" flood-color="#000" flood-opacity="0.6"/>
+    </filter>
+  </defs>
+  <rect width="1200" height="630" fill="url(#bg)"/>
+  
+  <!-- Logo inside OG Image -->
+  <g transform="translate(100, 115)">
+    <rect width="400" height="400" rx="80" fill="url(#grad)" filter="url(#shadow)"/>
+    <path d="M100 255 L200 155 L300 255" fill="none" stroke="#ffffff" stroke-width="48" stroke-linecap="round" stroke-linejoin="round" opacity="0.5"/>
+    <path d="M100 185 L200 85 L300 185" fill="none" stroke="#ffffff" stroke-width="48" stroke-linecap="round" stroke-linejoin="round"/>
+  </g>
+  
+  <text x="580" y="260" fill="#ffffff" font-size="90" font-weight="800" font-family="sans-serif">TakipUp</text>
+  <text x="580" y="320" fill="#06b6d4" font-size="32" font-weight="700" font-family="sans-serif" letter-spacing="8">SOSYAL MEDYA PANELİ</text>
+  <text x="580" y="400" fill="#cbd5e1" font-size="38" font-weight="500" font-family="sans-serif">Hızlı Teslimat &amp; Güvenli Ödeme</text>
+  <text x="580" y="460" fill="#94a3b8" font-size="32" font-weight="500" font-family="sans-serif">takipup.com</text>
+</svg>

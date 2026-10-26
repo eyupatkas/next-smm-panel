@@ -1,0 +1,24 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="885" height="288" viewBox="0 0 885 288">
+  <defs>
+    <linearGradient id="gm" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#2563EB"/><stop offset="1" stop-color="#06B6D4"/>
+    </linearGradient>
+    <linearGradient id="gm2" gradientUnits="userSpaceOnUse" x1="0" y1="0" x2="201.0" y2="0">
+      <stop offset="0" stop-color="#2563EB"/><stop offset="1" stop-color="#06B6D4"/>
+    </linearGradient>
+  </defs>
+  <rect width="885" height="288" rx="34" fill="#FFFFFF"/>
+  <g transform="translate(44 44)">
+  <path d="M 151.2 86.1 A 58 58 0 1 0 129.3 151.5"
+    fill="none" stroke="url(#gm)" stroke-width="18" stroke-linecap="round"/>
+  <path d="M 151.2 86.1 L 191.1612779451189 46.07701432625305" fill="none" stroke="url(#gm)" stroke-width="18" stroke-linecap="round"/>
+  <path d="M 164.1612779451189 49.07701432625305 L 191.1612779451189 46.07701432625305 L 188.1612779451189 73.07701432625305"
+    fill="none" stroke="url(#gm)" stroke-width="18" stroke-linecap="round" stroke-linejoin="round"/></g>
+  <g transform="translate(290.0 63.6) scale(1.34)"><g fill="none" stroke="#0F172A" stroke-width="12" stroke-linecap="round" stroke-linejoin="round"><ellipse cx="29" cy="60" rx="25.5" ry="39.5"/></g></g>
+<g transform="translate(378.4 63.6) scale(1.34)"><g fill="none" stroke="#0F172A" stroke-width="12" stroke-linecap="round" stroke-linejoin="round"><path d="M7 56 V124"/><circle cx="29.5" cy="79" r="20"/></g></g>
+<g transform="translate(461.5 63.6) scale(1.34)"><g fill="none" stroke="#0F172A" stroke-width="12" stroke-linecap="round" stroke-linejoin="round"><path d="M5 48 H29"/><path d="M17 26 V86 Q17 100 27 100 H32"/></g></g>
+<g transform="translate(520.5 63.6) scale(1.34)"><g fill="none" stroke="#0F172A" stroke-width="12" stroke-linecap="round" stroke-linejoin="round"><path d="M12 58 V100"/><circle cx="12" cy="34.5" r="6.5" fill="#0F172A" stroke="none"/></g></g>
+  <g transform="translate(571.4 63.6) scale(1.34)"><g transform="translate(0.0 0)"><g fill="none" stroke="url(#gm2)" stroke-width="12" stroke-linecap="round" stroke-linejoin="round"><path d="M43 34 C40 25 32.5 20 23 20 C11.5 20 4 27.5 4 37.5 C4 48 12 52.5 26 56.5 C40 60.5 48 66 48 77 C48 89.5 38 97 24 97 C10.5 97 3 90 1.5 79.5"/></g></g>
+<g transform="translate(64.0 0)"><g fill="none" stroke="url(#gm2)" stroke-width="12" stroke-linecap="round" stroke-linejoin="round"><path d="M5 100 V22 L31 63 L57 22 V100"/></g></g>
+<g transform="translate(139.0 0)"><g fill="none" stroke="url(#gm2)" stroke-width="12" stroke-linecap="round" stroke-linejoin="round"><path d="M5 100 V22 L31 63 L57 22 V100"/></g></g></g>
+</svg>
